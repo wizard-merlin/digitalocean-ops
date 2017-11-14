@@ -30,8 +30,8 @@ public class CeCloud360 extends AvailabilityTestService {
         inputElement.sendKeys(urlToTest);
         inputElement.submit();
         LOGGER.info("waiting for speed test results");
-//        Thread.sleep(30*1000L);
-        Thread.sleep(5 * 1000L);
+        int timeToWaitInSeconds = 30;
+        Thread.sleep(timeToWaitInSeconds * 1000L);
         List<WebElement> rows = phantom.findElements(By.tagName("tr"));
         StringBuilder sb = new StringBuilder();
         for (WebElement row : rows) {
