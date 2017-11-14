@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <bean id="digitalOcean" class="tk.wizardmerlin.operations.DigitalOceanVps">
+        <!--TODO set authToken-->
+        <property name="authToken" value=""/>
+    </bean>
+    <bean id="vultr" class="tk.wizardmerlin.operations.VultrVps">
+        <!--TODO set authToken-->
+        <property name="authToken" value=""/>
+    </bean>
+    <bean id="ipRotator" class="tk.wizardmerlin.operations.IpRotator">
+        <property name="availabilityTester" ref="ceCloud360"/>
+        <property name="sshService" ref="sshService"/>
+        <!--TODO set configFilePath-->
+        <property name="configFilePath" value="/path/to/config.json"/>
+        <property name="digitalOcean" ref="digitalOcean"/>
+        <property name="vultr" ref="vultr"/>
+        <property name="cloudflare" ref="cloudflare"/>
+    </bean>
+    <bean id="sshService" class="tk.wizardmerlin.operations.SshServiceImpl"/>
+    <bean id="cloudflare" class="tk.wizardmerlin.operations.Cloudflare">
+        <!--TODO set authToken-->
+        <property name="authToken" value=""/>
+        <!--TODO set authEmail-->
+        <property name="authEmail" value=""/>
+        <property name="apiBaseUrl" value="https://api.cloudflare.com/client/v4/"/>
+    </bean>
+    <bean id="ceCloud360" class="tk.wizardmerlin.operations.CeCloud360">
+        <property name="testerSiteUrl" value="http://ce.cloud.360.cn/"/>
+        <property name="phantomJSDriver" ref="phantomJs"/>
+    </bean>
+    <util:map id="capabilityMap" key-type="java.lang.String" value-type="java.lang.String">
+        <entry key="javascriptEnabled" value="true"/>
+        <entry key="takesScreenshot" value="true"/>
+        <!--TODO set phantomjs.binary.path-->
+        <entry key="phantomjs.binary.path" value="/path/to/phantomjs"/>
+        <entry key="phantomjs.page.settings.userAgent"
+               value="Mozilla/5.0 (Windows NT 6.0) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.41 Safari/535.1"/>
+    </util:map>
+    <bean id="desiredCapabilities" class="org.openqa.selenium.remote.DesiredCapabilities">
+        <constructor-arg ref="capabilityMap"/>
+    </bean>
+    <bean id="phantomJs" class="org.openqa.selenium.phantomjs.PhantomJSDriver">
+        <constructor-arg ref="desiredCapabilities"/>
+    </bean>
+</beans>
