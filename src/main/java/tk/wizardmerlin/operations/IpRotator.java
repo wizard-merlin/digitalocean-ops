@@ -57,11 +57,12 @@ public class IpRotator {
             }
             for (VpnServer server : servers) {
                 try {
-                    startTomcat(server, port);
+                    String containerName = "some-nginx";
+                    startTomcat(server, port, containerName);
                     String urlToTest = "http://" + server.getHostname() + ":" + port;
                     LOGGER.info("URL to test: " + urlToTest);
                     boolean isAvailable = availabilityTester.test(urlToTest);
-                    stopTomcat(server);
+                    stopTomcat(server, containerName);
                     if (!isAvailable) {
                         LOGGER.info(urlToTest + " is not available");
                         String originalIpAddr = server.getIpAddr();
@@ -98,7 +99,7 @@ public class IpRotator {
         }
     }
 
-    private void startTomcat(VpnServer vpnServer, int port) throws Exception {
+    private void startTomcat(VpnServer vpnServer, int port, String containerName) throws Exception {
         String serverAddr = vpnServer.getHostname();
         String startTomcat = "CONTAINER_NAME=%s\n" +
                 "PORT=%s\n" +
@@ -108,9 +109,9 @@ public class IpRotator {
                 "        docker rm $CONTAINER_NAME\n" +
                 "    fi\n" +
                 "    # run your container\n" +
-                "    docker run -d --name=$CONTAINER_NAME -v /dev/urandom:/dev/random -p $PORT:8080 tomcat:8.0\n" +
+                "    docker run -d --name=$CONTAINER_NAME -p $PORT:80 wizardmerlin/nginx-helloworld\n" +
                 "fi";
-        String containerName = "tomcat";
+
         startTomcat = String.format(startTomcat, Ssh.escape(containerName), Ssh.escape(Integer.toString(port)));
         try {
             LOGGER.info("serverAddr: " + serverAddr);
@@ -121,9 +122,8 @@ public class IpRotator {
         }
     }
 
-    private void stopTomcat(VpnServer vpnServer) {
+    private void stopTomcat(VpnServer vpnServer, String containerName) {
         String serverAddr = vpnServer.getHostname();
-        String containerName = "tomcat";
         String stopTomcat = String.format("docker stop %s && docker rm %s", containerName, containerName);
         try {
             sshService.executeCommand(serverAddr, vpnServer.getSshPort(), vpnServer.getUsername(),
